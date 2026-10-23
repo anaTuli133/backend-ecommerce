@@ -19,6 +19,7 @@ const createProductController = async (req, res) => {
             stock
         } = req.body
 
+        
         const slug = slugify(title, { lower: true, strict: true, trim: true })
         const isExistbySlug = await Product.findOne({ slug })
         if (isExistbySlug) {
@@ -29,7 +30,7 @@ const createProductController = async (req, res) => {
         if (isExistbySku) {
             return res.status(400).json({ success: false, message: 'Product already exist with this sku' })
         }
-        const images = req.files.map((file, index) => {
+        const images = (req.files || []).map((file, index) => {
             return {
                 url: `uploads/${file.filename}`,
                 isMain: mainImageIndex == index
@@ -39,7 +40,8 @@ const createProductController = async (req, res) => {
         await product.save()
         return res.status(201).json({ success: true, message: 'Product created successfully', data: product })
     } catch (error) {
-        return res.status(500).json({ status: false, message: 'Internal server error' })
+        console.error('createProduct error:', error)
+        return res.status(500).json({ status: false, message: error.message })
     }
 }
 
