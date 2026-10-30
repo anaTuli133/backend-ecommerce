@@ -10,9 +10,15 @@ const swaggerOptions = {
             description: 'REST API documentation for auth, vendor (category / product) and admin modules.'
         },
         // http://localhost:8000/api-docs
+        // https://backend-ecommerce-o72v.onrender.com/api-docs
+//post api/v1/lauth/login
+//         {
+//   "email": "test@example.com",
+//   "password": "abc12345"
+//         }
         servers: [
             {
-                url: process.env.SWAGGER_SERVER_URL || `http://localhost:${process.env.PORT || 8000}`,
+                url: process.env.SWAGGER_SERVER_URL || '/',
                 description: 'API server'
             }
         ],
