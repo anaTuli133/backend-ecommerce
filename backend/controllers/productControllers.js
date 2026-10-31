@@ -3,6 +3,9 @@ const path = require("path")
 const { nanoid } = require("nanoid");
 const slugify = require("slugify")
 const Product = require('../models/productModel')
+const { readSheet } = require('read-excel-file/node')
+const writeExcelFile = require('write-excel-file/node')
+const { schema, columns } = require('../utils/productsUtility')
 
 
 
@@ -216,4 +219,48 @@ const updateProductController = async (req, res) => {
     }
 }
 
-module.exports = {createProductController,getAllProductsController,getSingleProductsController,getProductsByOwnerController,deleteProductsController,getProductsByCategoryController,getProductsBySubCategoryController,updateProductController}
+// Category and subcategory given to every product that comes from an Excel file
+// (the sheet has no category column). Change these two ids to the ones you want.
+const EXCEL_DEFAULT_CATEGORY = '6adb13e156885c49f9cf965e'
+const EXCEL_DEFAULT_SUBCATEGORY = '6adb146f56885c49f9cf965f'
+
+const bulkuploadProductsExcelController = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'Please select an Excel file' })
+        }
+        const { objects, errors } = await readSheet(req.file.path, { schema })
+        // rows without a title are ignored
+        const rows = objects.filter((item) => item.title)
+        const productList = rows.map((item) => ({
+            ...item,
+            images: item.images
+                ? item.images.split(',').map((url, index) => ({ url: url.trim(), isMain: index === 0 }))
+                : [],
+            category: EXCEL_DEFAULT_CATEGORY,
+            subCategory: EXCEL_DEFAULT_SUBCATEGORY,
+            owner: req.user._id,
+            sku: item.sku || `LM-${nanoid(10)}`,
+            slug: item.slug || slugify(item.title, { lower: true, strict: true, trim: true })
+        }))
+        const savedProducts = await Product.insertMany(productList)
+        return res.status(201).json({ success: true, message: 'Products uploaded successfully', data: { errors, products: savedProducts } })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Internal server error', error: error.message })
+    }
+}
+
+const bulkdownloadProductsExcelController = async (req, res) => {
+    try {
+        const productData = await Product.find().lean()
+        const filesDir = path.join(__dirname, '..', 'files')
+        fs.mkdirSync(filesDir, { recursive: true })
+        const fileName = `products-${Date.now()}.xlsx`
+        await writeExcelFile(productData, { columns }).toFile(path.join(filesDir, fileName))
+        return res.status(200).json({ success: true, message: 'Products downloaded successfully', data: { file: `files/${fileName}` } })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Internal server error', error: error.message })
+    }
+}
+
+module.exports = {createProductController,getAllProductsController,getSingleProductsController,getProductsByOwnerController,deleteProductsController,getProductsByCategoryController,getProductsBySubCategoryController,updateProductController,bulkuploadProductsExcelController,bulkdownloadProductsExcelController}

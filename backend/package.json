@@ -24,9 +24,11 @@
     "nanoid": "^6.0.2",
     "nodemailer": "^10.0.1",
     "nodemon": "^3.1.14",
+    "read-excel-file": "^9.3.12",
     "slugify": "^1.6.9",
     "swagger-jsdoc": "^6.3.0",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "write-excel-file": "^4.1.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.6"

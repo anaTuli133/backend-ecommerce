@@ -8,13 +8,16 @@ const {
     getAllCategories,
 } = require('../controllers/vendorController')
 const upload = require('../middlewares/uploadMiddleware')
+const excelUpload = require('../middlewares/excelUploadMiddleware')
 const { createProductController, getAllProductsController,
     getSingleProductsController,
     getProductsByOwnerController,
     deleteProductsController,
     getProductsBySubCategoryController,
     getProductsByCategoryController,
-    updateProductController
+    updateProductController,
+    bulkuploadProductsExcelController,
+    bulkdownloadProductsExcelController
 } = require('../controllers/productControllers')
 
 const router = express.Router()
@@ -481,5 +484,102 @@ router.delete('/products/:id', deleteProductsController)
  *         description: Product not found
  */
 router.post('/products/update/:id', upload.array('images'), updateProductController)
+
+/**
+ * @swagger
+ * /api/v1/vendor/products/bulk-upload:
+ *   post:
+ *     tags: [Vendor - Product]
+ *     summary: Add many products at once from an Excel (.xlsx) file
+ *     description: |
+ *       Upload a `.xlsx` file (max 5 MB). The **first sheet** is read and **row 1 must be the header**.
+ *       The header names must be written exactly like this (a column may be left out):
+ *
+ *       `title`, `slug`, `sku`, `shortDescription`, `description`, `price`, `discountPrice`, `stock`, `images`
+ *
+ *       Rows without a `title` are ignored. If `slug` or `sku` is empty it is generated automatically.
+ *       `images` is optional: existing image paths separated by commas (the first one is the main image).
+ *       Every product gets the default category and subcategory written at the top of `bulkuploadProductsExcelController`
+ *       and the logged-in person as owner.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [file]
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: The .xlsx file
+ *     responses:
+ *       201:
+ *         description: Products uploaded
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Products uploaded successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     errors:
+ *                       type: array
+ *                       description: Cells that could not be read (if any)
+ *                       items:
+ *                         type: object
+ *                     products:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Product'
+ *       400:
+ *         description: No file selected
+ *       500:
+ *         description: Server error (for example a title or slug that already exists)
+ */
+router.post('/products/bulk-upload', excelUpload.single('file'), bulkuploadProductsExcelController)
+
+/**
+ * @swagger
+ * /api/v1/vendor/products/bulk-download:
+ *   post:
+ *     tags: [Vendor - Product]
+ *     summary: Save all products into an Excel (.xlsx) file on the server
+ *     description: Writes every product to a new file in the server's `files` folder (name `products-<time>.xlsx`) and returns that file name.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: File created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Products downloaded successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     file:
+ *                       type: string
+ *                       example: files/products-1793354047420.xlsx
+ *       500:
+ *         description: Server error
+ */
+router.post('/products/bulk-download', bulkdownloadProductsExcelController)
 
 module.exports = router

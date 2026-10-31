@@ -26,6 +26,7 @@ const swaggerOptions = {
             { name: 'Auth', description: 'Registration, login and password recovery' },
             { name: 'Vendor - Category', description: 'Category and subcategory management' },
             { name: 'Vendor - Product', description: 'Product management (vendor or admin token)' },
+            { name: 'User - Account', description: 'A logged-in user (role user) updates his own account' },
             { name: 'Admin - User', description: 'User management (admin token)' },
             { name: 'Admin - Category', description: 'Category moderation (admin token)' }
         ],
