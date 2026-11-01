@@ -220,7 +220,7 @@ const updateProductController = async (req, res) => {
 }
 
 // Category and subcategory given to every product that comes from an Excel file
-// (the sheet has no category column). Change these two ids to the ones you want.
+// (the sheet has no category column)
 const EXCEL_DEFAULT_CATEGORY = '6adb13e156885c49f9cf965e'
 const EXCEL_DEFAULT_SUBCATEGORY = '6adb146f56885c49f9cf965f'
 
