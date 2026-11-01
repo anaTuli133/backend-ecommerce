@@ -1,5 +1,5 @@
 const express = require('express')
-const { accountUpdateController } = require('../controllers/userControllers')
+const { userUpdateController } = require('../controllers/userControllers')
 
 const router = express.Router()
 
@@ -52,6 +52,6 @@ const router = express.Router()
  *       403:
  *         description: This is not your account
  */
-router.post('/update/:id', accountUpdateController)
+router.post('/update/:id', userUpdateController)
 
 module.exports = router

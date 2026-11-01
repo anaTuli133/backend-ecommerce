@@ -3,7 +3,7 @@ const User = require('../models/userModel')
 // these can never be changed by the user himself
 const protectedFields = ['role', 'status', 'password', 'isVerifed']
 
-const accountUpdateController = async (req, res) => {
+const userUpdateController = async (req, res) => {
     try {
         const { id } = req.params
         if (!id) {
@@ -27,4 +27,4 @@ const accountUpdateController = async (req, res) => {
     }
 }
 
-module.exports = { accountUpdateController }
+module.exports = { userUpdateController }
