@@ -220,16 +220,42 @@ const updateProductController = async (req, res) => {
 }
 
 // Category and subcategory given to every product that comes from an Excel file
-// (the sheet has no category column)
+// (the sheet has no category column). Change these two ids to the ones you want.
 const EXCEL_DEFAULT_CATEGORY = '6adb13e156885c49f9cf965e'
 const EXCEL_DEFAULT_SUBCATEGORY = '6adb146f56885c49f9cf965f'
+
+// checks the first two bytes of the uploaded file: "PK" means it is a zip, like every .xlsx
+const looksLikeXlsx = (filePath) => {
+    const fileId = fs.openSync(filePath, 'r')
+    const firstBytes = Buffer.alloc(2)
+    fs.readSync(fileId, firstBytes, 0, 2, 0)
+    fs.closeSync(fileId)
+    return firstBytes.toString('latin1') === 'PK'
+}
 
 const bulkuploadProductsExcelController = async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ success: false, message: 'Please select an Excel file' })
         }
-        const { objects, errors } = await readSheet(req.file.path, { schema })
+        // a real .xlsx file is a zip file, so its first two letters are "PK"
+        if (!looksLikeXlsx(req.file.path)) {
+            return res.status(400).json({
+                success: false,
+                message: 'This is not a real .xlsx file. Open it in Excel (or Google Sheets) and save it again as Excel Workbook (.xlsx)'
+            })
+        }
+        let sheet
+        try {
+            sheet = await readSheet(req.file.path, { schema })
+        } catch (readError) {
+            return res.status(400).json({
+                success: false,
+                message: 'Could not read the Excel file. Please save it again as .xlsx and upload it again',
+                error: readError.message
+            })
+        }
+        const { objects, errors } = sheet
         // rows without a title are ignored
         const rows = objects.filter((item) => item.title)
         const productList = rows.map((item) => ({

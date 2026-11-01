@@ -542,7 +542,7 @@ router.post('/products/update/:id', upload.array('images'), updateProductControl
  *                       items:
  *                         $ref: '#/components/schemas/Product'
  *       400:
- *         description: No file selected
+ *         description: No file selected, or the file is not a real .xlsx (save it again as Excel Workbook)
  *       500:
  *         description: Server error (for example a title or slug that already exists)
  */
