@@ -9,7 +9,7 @@ const generateAccessToken = require('../utils/generateAccessToken');
 const registerController = async (req, res) => {
     try {
         const { email, password, confirmPassword, terms, fullName } = req.body
-        if (!email || !password || !terms) {
+        if (!email || !password || terms !== true) {
             return res.status(400).json({ success: false, message: 'Please fill in all required fields.' })
         }
         if (!emailRegex.test(email)) {
@@ -25,6 +25,11 @@ const registerController = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Passwords do not match.' })
         }
 
+        const alreadyRegistered = await User.findOne({ email })
+        if (alreadyRegistered) {
+            return res.status(400).json({ success: false, message: 'An account already exists with this email.' })
+        }
+
         const hashPassword = bcrypt.hashSync(password, 10)
 
         const user = new User({ email, terms, fullName, password: hashPassword })
@@ -35,7 +40,7 @@ const registerController = async (req, res) => {
 
         return res.status(201).json({ success: true, message: 'Register success.' })
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message })
+        return res.status(500).json({ success: false, message: 'Internal server error' })
     }
 }
 
@@ -56,7 +61,7 @@ const loginController = async (req, res) => {
         const token = generateAccessToken(user)
         return res.status(200).json({ success: true, message: 'Login success.', data: { _id: user._id, fullName: user.fullName, email: user.email, role: user.role }, accessToken: token })
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message })
+        return res.status(500).json({ success: false, message: 'Internal server error' })
     }
 }
 
@@ -71,12 +76,12 @@ const verifyAccountController = async (req, res) => {
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found.' })
         }
-        if (user.isVerifed) {
-            return res.status(400).json({ success: false, message: 'Account already verifed.' })
+        if (user.isVerified) {
+            return res.status(400).json({ success: false, message: 'Account already verified.' })
         }
-        user.isVerifed = true
+        user.isVerified = true
         await user.save()
-        return res.status(200).json({ success: true, message: 'Account verify success.', data: { _id: user._id, fullName: user.fullName, isVerifed: user.isVerifed, email: user.email } })
+        return res.status(200).json({ success: true, message: 'Account verify success.', data: { _id: user._id, fullName: user.fullName, isVerified: user.isVerified, email: user.email } })
     } catch (error) {
         return res.status(400).json({ success: false, message: 'Invalid token or token expired' })
     }
@@ -97,7 +102,7 @@ const forgotPasswordController = async (req, res) => {
         await resetPasswordEmail(email, token)
         return res.status(200).json({ success: true, message: 'Password reset email send successfully, please check your email.' })
     } catch (error) {
-        return res.status(500).json({ success: false, message: error.message })
+        return res.status(500).json({ success: false, message: 'Internal server error' })
     }
 }
 
@@ -107,6 +112,9 @@ const resetPasswordController = async (req, res) => {
         const { password, confirmPassword } = req.body
         if (!password || !confirmPassword) {
             return res.status(400).json({ success: false, message: 'All feild are requred.' })
+        }
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json({ success: false, message: 'Password must be at least 8 characters and contain a letter and a number.' })
         }
         if (password !== confirmPassword) {
             return res.status(400).json({ success: false, message: 'Password not matched.' })

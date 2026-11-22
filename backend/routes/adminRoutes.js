@@ -8,7 +8,9 @@ const {
     deleteUserController,
     updateCategory,
     categoryDeleteController,
-    getAllCategories
+    getAllCategories,
+    changeCategoryStatus,
+    changeProductStatus
 } = require('../controllers/adminControllers')
 const { getAllCategoriesByOwner } = require('../controllers/vendorController')
 
@@ -275,5 +277,76 @@ router.post('/delete-category/:id', categoryDeleteController)
  *         description: Invalid object id
  */
 router.get('/user/:id/category', getAllCategoriesByOwner)
+
+
+/**
+ * @swagger
+ * /api/v1/admin/category/status/update/{id}:
+ *   post:
+ *     tags: [Admin - Category]
+ *     summary: Change category status (approve / reject)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [status]
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [active, pending, reject]
+ *     responses:
+ *       200:
+ *         description: Status changed
+ *       400:
+ *         description: Invalid status
+ *       404:
+ *         description: Category not found
+ */
+router.post('/category/status/update/:id', changeCategoryStatus)
+
+/**
+ * @swagger
+ * /api/v1/admin/product/status/update/{id}:
+ *   post:
+ *     tags: [Admin - Product]
+ *     summary: Change product status (approve / reject)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [status]
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [pending, approved, rejected]
+ *     responses:
+ *       200:
+ *         description: Status changed
+ *       400:
+ *         description: Invalid status
+ *       404:
+ *         description: Product not found
+ */
+router.post('/product/status/update/:id', changeProductStatus)
 
 module.exports = router

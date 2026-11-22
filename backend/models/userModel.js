@@ -4,11 +4,14 @@ const { Schema } = mongoose
 const userSchema = new Schema({
     fullName: {
         type: String,
+        trim: true
     },
     email: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        trim: true,
+        lowercase: true
     },
     password: {
         type: String,
@@ -21,7 +24,7 @@ const userSchema = new Schema({
     },
     role: {
         type: String,
-        enum: ['user', 'admin'],
+        enum: ['user', 'vendor', 'admin'],
         default: 'user'
     },
     status: {
@@ -29,7 +32,7 @@ const userSchema = new Schema({
         enum: ['active', 'suspended'],
         default: 'active'
     },
-    isVerifed: {
+    isVerified: {
         type: Boolean,
         default: false
     }

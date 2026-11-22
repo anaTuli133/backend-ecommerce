@@ -25,10 +25,16 @@ const productSchema = new Schema({
     },
     price: {
         type: Number,
-        required: true
+        required: true,
+        min: 0
+    },
+    discountType: {
+        type: String,
+        enum: ['percent', 'fixed']
     },
     discountPrice: {
-        type: Number
+        type: Number,
+        min: 0
     },
     stock: {
         type: Number,

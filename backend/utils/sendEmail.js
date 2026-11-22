@@ -47,7 +47,7 @@ const createCategoryEmail = async (category) => {
             from: '"Anamika Saha" <anamika.aust.47@gmail.com>',
             to: 'anamika.aust.47@gmail.com',
             subject: "New category created",
-            text: `New category: ${category} created`,
+            text: `New category: ${category} created, please open the admin panel to review it`,
         });
 
         console.log("Message sent: %s", info.messageId);

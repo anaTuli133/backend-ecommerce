@@ -1,5 +1,6 @@
 const User = require('../models/userModel')
 const Category = require('../models/categoryModel')
+const Product = require('../models/productModel')
 const userUpdateController = async (req, res) => {
     try {
         const { id } = req.params
@@ -131,4 +132,41 @@ const getAllCategories = async (req, res) => {
     }
 }
 
-module.exports = {userUpdateController,getAllUsersController,getUserController,getAllActiveUsersController,getAllDeactiveUsersController,deleteUserController,updateCategory,categoryDeleteController,getAllCategories}
+
+// admin approves / rejects a category
+const changeCategoryStatus = async (req, res) => {
+    try {
+        const { id } = req.params
+        const { status } = req.body
+        if (!['active', 'pending', 'reject'].includes(status)) {
+            return res.status(400).json({ success: false, message: 'Status must be active, pending or reject' })
+        }
+        const category = await Category.findByIdAndUpdate(id, { status }, { new: true, runValidators: true })
+        if (!category) {
+            return res.status(404).json({ success: false, message: 'Category not found' })
+        }
+        return res.status(200).json({ success: true, message: `Category status changed to ${status}`, data: category })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Internal server error' })
+    }
+}
+
+// admin approves / rejects a product
+const changeProductStatus = async (req, res) => {
+    try {
+        const { id } = req.params
+        const { status } = req.body
+        if (!['pending', 'approved', 'rejected'].includes(status)) {
+            return res.status(400).json({ success: false, message: 'Status must be pending, approved or rejected' })
+        }
+        const product = await Product.findByIdAndUpdate(id, { status }, { new: true, runValidators: true })
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not found' })
+        }
+        return res.status(200).json({ success: true, message: `Product status changed to ${status}`, data: product })
+    } catch (error) {
+        return res.status(500).json({ success: false, message: 'Internal server error' })
+    }
+}
+
+module.exports = {userUpdateController,getAllUsersController,getUserController,getAllActiveUsersController,getAllDeactiveUsersController,deleteUserController,updateCategory,categoryDeleteController,getAllCategories,changeCategoryStatus,changeProductStatus}

@@ -16,6 +16,7 @@ const createProductController = async (req, res) => {
             description = '',
             shortDescription = '',
             price,
+            discountType,
             discountPrice = 0,
             category,
             subCategory,
@@ -41,7 +42,7 @@ const createProductController = async (req, res) => {
                 isMain: mainImageIndex == index
             }
         })
-        const product = new Product({ title, stock, description, shortDescription, price, discountPrice, category, subCategory, owner, images, slug, sku })
+        const product = new Product({ title, stock, description, shortDescription, price, discountType, discountPrice, category, subCategory, owner, images, slug, sku })
         await product.save()
         return res.status(201).json({ success: true, message: 'Product created successfully', data: product })
     } catch (error) {
@@ -63,6 +64,19 @@ const getSingleProductsController = async (req, res) => {
     try {
         const { id } = req.params
         const product = await Product.findById(id).populate(['owner', 'category', 'subCategory'])
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not found' })
+        }
+        return res.status(200).json({ success: true, message: 'Product get successfully', data: product })
+    } catch (error) {
+        return res.status(500).json({ status: false, message: 'Internal server error' })
+    }
+}
+
+const getSingleProductBySlugController = async (req, res) => {
+    try {
+        const { slug } = req.params
+        const product = await Product.findOne({ slug }).populate(['owner', 'category', 'subCategory'])
         if (!product) {
             return res.status(404).json({ success: false, message: 'Product not found' })
         }
@@ -169,7 +183,7 @@ const updateProductController = async (req, res) => {
         }
 
         // 1) plain fields (whitelist only)
-        const editable = ['title', 'shortDescription', 'description', 'price', 'discountPrice', 'stock', 'category', 'subCategory']
+        const editable = ['title', 'shortDescription', 'description', 'price', 'discountType', 'discountPrice', 'stock', 'category', 'subCategory']
         editable.forEach((key) => {
             if (body[key] !== undefined) product[key] = body[key]
         })
@@ -289,4 +303,4 @@ const bulkdownloadProductsExcelController = async (req, res) => {
     }
 }
 
-module.exports = {createProductController,getAllProductsController,getSingleProductsController,getProductsByOwnerController,deleteProductsController,getProductsByCategoryController,getProductsBySubCategoryController,updateProductController,bulkuploadProductsExcelController,bulkdownloadProductsExcelController}
+module.exports = {createProductController,getAllProductsController,getSingleProductsController,getSingleProductBySlugController,getProductsByOwnerController,deleteProductsController,getProductsByCategoryController,getProductsBySubCategoryController,updateProductController,bulkuploadProductsExcelController,bulkdownloadProductsExcelController}

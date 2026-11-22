@@ -7,6 +7,7 @@ const {
     getAllCategoriesByOwner,
     getAllCategories,
 } = require('../controllers/vendorController')
+const { createCoupon } = require('../controllers/couponController')
 const upload = require('../middlewares/uploadMiddleware')
 const excelUpload = require('../middlewares/excelUploadMiddleware')
 const { createProductController, getAllProductsController,
@@ -212,6 +213,9 @@ router.get('/user/:id/category', getAllCategoriesByOwner)
  *               price:
  *                 type: number
  *                 example: 75000
+ *               discountType:
+ *                 type: string
+ *                 enum: [percent, fixed]
  *               discountPrice:
  *                 type: number
  *                 example: 70000
@@ -439,6 +443,9 @@ router.delete('/products/:id', deleteProductsController)
  *                 type: string
  *               price:
  *                 type: number
+ *               discountType:
+ *                 type: string
+ *                 enum: [percent, fixed]
  *               discountPrice:
  *                 type: number
  *               stock:
@@ -495,7 +502,7 @@ router.post('/products/update/:id', upload.array('images'), updateProductControl
  *       Upload a `.xlsx` file (max 5 MB). The **first sheet** is read and **row 1 must be the header**.
  *       The header names must be written exactly like this (a column may be left out):
  *
- *       `title`, `slug`, `sku`, `shortDescription`, `description`, `price`, `discountPrice`, `stock`, `images`
+ *       `title`, `slug`, `sku`, `shortDescription`, `description`, `price`, `discountType`, `discountPrice`, `stock`, `images`
  *
  *       Rows without a `title` are ignored. If `slug` or `sku` is empty it is generated automatically.
  *       `images` is optional: existing image paths separated by commas (the first one is the main image).
@@ -581,5 +588,44 @@ router.post('/products/bulk-upload', excelUpload.single('file'), bulkuploadProdu
  *         description: Server error
  */
 router.post('/products/bulk-download', bulkdownloadProductsExcelController)
+
+// coupon
+
+/**
+ * @swagger
+ * /api/v1/vendor/create/coupon:
+ *   post:
+ *     tags: [Vendor - Coupon]
+ *     summary: Create a coupon
+ *     description: percent -> discountValue is the percentage off, fixed -> discountValue is the amount off. The code is stored in uppercase.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [code, discountType, discountValue]
+ *             properties:
+ *               code:
+ *                 type: string
+ *                 example: SAVE10
+ *               discountType:
+ *                 type: string
+ *                 enum: [percent, fixed]
+ *               discountValue:
+ *                 type: number
+ *                 example: 10
+ *               minPurchase:
+ *                 type: number
+ *                 example: 5000
+ *     responses:
+ *       201:
+ *         description: Coupon created
+ *       400:
+ *         description: Invalid data or coupon already exists
+ */
+router.post('/create/coupon', createCoupon)
 
 module.exports = router

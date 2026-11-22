@@ -7,7 +7,7 @@ const generateAccessToken = (user) => {
         email: user.email
     },
         process.env.JWT_SECRET,
-        { expiresIn: '3d' })
+        { expiresIn: '7d' })
 }
 
 module.exports = generateAccessToken

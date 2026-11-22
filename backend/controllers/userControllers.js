@@ -1,7 +1,7 @@
 const User = require('../models/userModel')
 
 // these can never be changed by the user himself
-const protectedFields = ['role', 'status', 'password', 'isVerifed']
+const protectedFields = ['role', 'status', 'password', 'isVerified']
 
 const userUpdateController = async (req, res) => {
     try {

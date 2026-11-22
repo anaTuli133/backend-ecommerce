@@ -28,7 +28,11 @@ const swaggerOptions = {
             { name: 'Vendor - Product', description: 'Product management (vendor or admin token)' },
             { name: 'User - Account', description: 'A logged-in user (role user) updates his own account' },
             { name: 'Admin - User', description: 'User management (admin token)' },
-            { name: 'Admin - Category', description: 'Category moderation (admin token)' }
+            { name: 'Admin - Category', description: 'Category moderation (admin token)' },
+            { name: 'Admin - Product', description: 'Product moderation (admin token)' },
+            { name: 'User - Cart', description: 'Cart of the logged-in user (role user)' },
+            { name: 'User - Payment', description: 'aamarPay payment and order verification (role user)' },
+            { name: 'Vendor - Coupon', description: 'Coupon management (vendor or admin token)' }
         ],
         components: {
             securitySchemes: {
@@ -65,6 +69,7 @@ const swaggerOptions = {
                         shortDescription: { type: 'string', example: '15 inch everyday laptop' },
                         description: { type: 'string', example: 'Core i5, 16GB RAM, 512GB SSD' },
                         price: { type: 'number', example: 75000 },
+                        discountType: { type: 'string', enum: ['percent', 'fixed'], example: 'fixed' },
                         discountPrice: { type: 'number', example: 70000 },
                         stock: { type: 'number', example: 12 },
                         images: { type: 'array', items: { $ref: '#/components/schemas/ProductImage' } },
@@ -101,7 +106,7 @@ const swaggerOptions = {
                         email: { type: 'string', format: 'email', example: 'test@example.com' },
                         role: { type: 'string', example: 'user' },
                         status: { type: 'string', enum: ['active', 'suspended'], example: 'active' },
-                        isVerifed: { type: 'boolean', example: false }
+                        isVerified: { type: 'boolean', example: false }
                     }
                 }
             }
