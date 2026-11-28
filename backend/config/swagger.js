@@ -31,6 +31,7 @@ const swaggerOptions = {
             { name: 'Admin - Category', description: 'Category moderation (admin token)' },
             { name: 'Admin - Product', description: 'Product moderation (admin token)' },
             { name: 'User - Cart', description: 'Cart of the logged-in user (role user)' },
+            { name: 'User - Browse', description: 'Products and categories for the logged-in user (role user)' },
             { name: 'User - Payment', description: 'aamarPay payment and order verification (role user)' },
             { name: 'Vendor - Coupon', description: 'Coupon management (vendor or admin token)' }
         ],

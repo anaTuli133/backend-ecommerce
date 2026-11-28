@@ -31,6 +31,17 @@ const orderSchema = new Schema({
     desc: {
         type: String
     },
+    // customer details sent to aamarPay, kept so a failed payment can be retried
+    customer: {
+        cus_name: String,
+        cus_email: String,
+        cus_add1: String,
+        cus_add2: String,
+        cus_city: String,
+        cus_state: String,
+        cus_postcode: String,
+        cus_phone: String
+    },
     status: {
         type: String,
         enum: ['PENDING', 'PAID', 'FAILED', 'CANCELLED'],

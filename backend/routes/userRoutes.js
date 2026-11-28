@@ -1,7 +1,7 @@
 const express = require('express')
 const { userUpdateController } = require('../controllers/userControllers')
 const { addToCart, changeCartQuantity, getCart } = require('../controllers/cartController')
-const { paymentController, paymentVerify } = require('../controllers/paymentController')
+const { paymentController, paymentVerify, retryPayment, reOrder } = require('../controllers/paymentController')
 const { getAllProductsController, getSingleProductBySlugController } = require('../controllers/productControllers')
 const { getAllCategories, getAllSubCategory, getAllSubCategoriesByCategory, getAllCategoriesByOwner } = require('../controllers/vendorController')
 
@@ -224,12 +224,182 @@ router.post('/payment', paymentController)
  */
 router.get('/payment/verify/:id', paymentVerify)
 
+/**
+ * @swagger
+ * /api/v1/user/payment/retry:
+ *   post:
+ *     tags: [User - Payment]
+ *     summary: Pay again for a failed or cancelled order
+ *     description: |
+ *       Works only for my own order with status FAILED or CANCELLED. The amount is the same as the first try
+ *       (coupon already included) and a new `tranId` is created. The order goes back to PENDING.
+ *       Customer details are taken from the first payment, send `cus_*` fields only to change them.
+ *       After paying, call GET /user/payment/verify/{tranId} with the new tranId.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [orderId]
+ *             properties:
+ *               orderId:
+ *                 type: string
+ *                 example: 66f1a2b3c4d5e6f7a8b9c0d1
+ *               cus_phone:
+ *                 type: string
+ *                 example: "01700000000"
+ *     responses:
+ *       200:
+ *         description: Payment initialized again, open data.payment_url
+ *       400:
+ *         description: Order already paid, still pending, not enough stock or customer details missing
+ *       404:
+ *         description: Order not found
+ */
+router.post('/payment/retry', retryPayment)
+
+/**
+ * @swagger
+ * /api/v1/user/reorder:
+ *   post:
+ *     tags: [User - Payment]
+ *     summary: Reorder an old order
+ *     description: Puts the products of one of my old orders back into my cart. A product that is missing or has not enough stock is skipped and listed in `skipped`.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [orderId]
+ *             properties:
+ *               orderId:
+ *                 type: string
+ *                 example: 66f1a2b3c4d5e6f7a8b9c0d1
+ *     responses:
+ *       200:
+ *         description: Products added to cart (and the skipped ones)
+ *       400:
+ *         description: Order id missing
+ *       404:
+ *         description: Order not found
+ */
+router.post('/reorder', reOrder)
+
 // browse (products and categories)
+
+/**
+ * @swagger
+ * /api/v1/user/all/product:
+ *   get:
+ *     tags: [User - Browse]
+ *     summary: List all products
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Product list (owner, category and subCategory are populated)
+ */
 router.get('/all/product', getAllProductsController)
+
+/**
+ * @swagger
+ * /api/v1/user/single/product/{slug}:
+ *   get:
+ *     tags: [User - Browse]
+ *     summary: Get one product by its slug
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product slug (the `slug` field of a product)
+ *     responses:
+ *       200:
+ *         description: The product
+ *       404:
+ *         description: Product not found
+ */
 router.get('/single/product/:slug', getSingleProductBySlugController)
+
+/**
+ * @swagger
+ * /api/v1/user/all/category:
+ *   get:
+ *     tags: [User - Browse]
+ *     summary: List all categories
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Category list
+ */
 router.get('/all/category', getAllCategories)
+
+/**
+ * @swagger
+ * /api/v1/user/all/subcategory:
+ *   get:
+ *     tags: [User - Browse]
+ *     summary: List all subcategories
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Subcategory list
+ */
 router.get('/all/subcategory', getAllSubCategory)
+
+/**
+ * @swagger
+ * /api/v1/user/all/category/{id}/subcategory:
+ *   get:
+ *     tags: [User - Browse]
+ *     summary: Subcategories of one category
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Category id
+ *     responses:
+ *       200:
+ *         description: Subcategory list
+ */
 router.get('/all/category/:id/subcategory', getAllSubCategoriesByCategory)
+
+/**
+ * @swagger
+ * /api/v1/user/all/user/{id}/category:
+ *   get:
+ *     tags: [User - Browse]
+ *     summary: Categories (with subcategories) of one owner
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Owner (vendor) user id
+ *     responses:
+ *       200:
+ *         description: Category list
+ *       400:
+ *         description: Invalid object id
+ */
 router.get('/all/user/:id/category', getAllCategoriesByOwner)
 
 module.exports = router
